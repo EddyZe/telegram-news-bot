@@ -31,7 +31,7 @@ public class RiaParser {
         var itemElements = doc.getElementsByClass("list-item__content");
 
         itemElements.forEach(i -> {
-            var itemPost = i.getElementsByAttributeValueContaining("class", "list-item__title").getFirst();
+            var itemPost = i.getElementsByAttributeValueContaining("class", "list-item__title").get(0);
             var postUrl = itemPost.attr("href");
             var postName = itemPost.text();
             itemList.add(Item.builder()
@@ -49,20 +49,20 @@ public class RiaParser {
 
         StringBuilder resultText = new StringBuilder();
 
-        var newsMedia = doc.getElementsByClass("article__header").getFirst()
+        var newsMedia = doc.getElementsByClass("article__header").get(0)
                 .getElementsByClass("media__size")
-                .getFirst();
+                .get(0);
 
         String urlImage;
         try {
             urlImage = newsMedia.getElementsByClass("photoview__open")
-                    .getFirst()
+                    .get(0)
                     .attr("data-photoview-src");
         } catch (NoSuchElementException e) {
             urlImage = newsMedia.getElementsByClass("video-player videoplayer-block")
-                    .getFirst()
+                    .get(0)
                     .getElementsByAttributeValueContaining("class", "video-js")
-                    .getFirst()
+                    .get(0)
                     .attr("poster");
         }
 
@@ -73,11 +73,11 @@ public class RiaParser {
             for (Element ee : textBlocks) {
                 var text = ee.getElementsByClass("article__text");
                 if (!text.isEmpty())
-                    resultText.append(text.getFirst().text()).append("\n\n");
+                    resultText.append(text.get(0).text()).append("\n\n");
 
                 var quote = ee.getElementsByClass("article__quote");
                 if (!quote.isEmpty())
-                    resultText.append(quote.getFirst().text()).append("\n\n");
+                    resultText.append(quote.get(0).text()).append("\n\n");
             }
         }
 
