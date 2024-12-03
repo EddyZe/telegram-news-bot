@@ -73,7 +73,7 @@ public class NewsService {
                 allNewsList.addAll(riaParser.getNewsList(c));
             }
 
-            for (Item item : allNewsList.reversed()) {
+            for (Item item : allNewsList) {
                 if (newsRepository.findByUrl(item.getPostUrl()).isEmpty()) {
                     sendNews(riaParser.getInfoItem(item));
                     newsRepository.save(NewsUrl.builder()
@@ -124,8 +124,8 @@ public class NewsService {
     }
 
     private String getCaption(News news, ResponseYandexGpt responseTitle, ResponseYandexGpt responseText) {
-        String title = responseTitle.getResult().getAlternatives().getFirst().getMessage().getText();
-        String text = responseText.getResult().getAlternatives().getFirst().getMessage().getText();
+        String title = responseTitle.getResult().getAlternatives().get(0).getMessage().getText();
+        String text = responseText.getResult().getAlternatives().get(0).getMessage().getText();
 
 
         if (text.contains("В интернете есть много сайтов с информацией на эту тему. [Посмотрите, что нашлось в поиске]")) {
