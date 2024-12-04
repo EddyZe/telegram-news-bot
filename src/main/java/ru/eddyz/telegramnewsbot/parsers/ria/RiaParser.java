@@ -4,6 +4,7 @@ package ru.eddyz.telegramnewsbot.parsers.ria;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import ru.eddyz.telegramnewsbot.parsers.ria.models.Item;
 import ru.eddyz.telegramnewsbot.parsers.ria.models.News;
@@ -53,10 +54,11 @@ public class RiaParser {
                 .getElementsByClass("media__size")
                 .get(0);
 
-        String urlImage;
+        String urlImage = null;
         try {
-            urlImage = newsMedia.getElementsByClass("photoview__open")
-                    .get(0)
+            Elements photoviewOpen = newsMedia.getElementsByClass("photoview__open");
+            if (!photoviewOpen.isEmpty())
+                urlImage = photoviewOpen.get(0)
                     .attr("data-photoview-src");
         } catch (NoSuchElementException e) {
             urlImage = newsMedia.getElementsByClass("video-player videoplayer-block")
@@ -84,7 +86,7 @@ public class RiaParser {
         return News.builder()
                 .title(item.getItemName())
                 .text(resultText.toString())
-                .imageUrl(urlImage)
+                .imageUrl(urlImage == null ? "" : urlImage)
                 .newsUrl(item.getPostUrl())
                 .build();
     }

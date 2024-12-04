@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.bots.AbsSender;
@@ -87,17 +89,14 @@ public class NewsService {
     }
 
     private void sendNews(News news) {
-        Optional<File> image;
+        Optional<File> image = Optional.empty();
         try {
-            image = browserUtil.downlandImage(new URI(news.getImageUrl()).toURL());
+            if (!news.getImageUrl().isEmpty())
+                image = browserUtil.downlandImage(new URI(news.getImageUrl()).toURL());
         } catch (MalformedURLException | URISyntaxException e) {
             log.error("Ошибка при загрузки фото!");
             return;
         }
-
-        if (image.isEmpty())
-            return;
-
 
         ResponseYandexGpt responseText = gptClient.sendPromt(
                 generateRequestYandexGpt("перескажи текст в один абзац", news.getText()));
@@ -108,14 +107,23 @@ public class NewsService {
 
 
         try {
+            if (image.isPresent()) {
+                sender.execute(SendPhoto.builder()
+                        .caption(caption)
+                        .chatId(groupId)
+                        .parseMode(ParseMode.HTML)
+                        .photo(new InputFile(image.get()))
+                        .build());
+                Files.deleteIfExists(image.get().toPath());
+            }
+            else
+                sender.execute(SendMessage
+                        .builder()
+                        .chatId(groupId)
+                        .text(caption)
+                        .parseMode(ParseMode.HTML)
+                        .build());
 
-            sender.execute(SendPhoto.builder()
-                    .caption(caption)
-                    .chatId(groupId)
-                    .parseMode(ParseMode.HTML)
-                    .photo(new InputFile(image.get()))
-                    .build());
-            Files.deleteIfExists(image.get().toPath());
         } catch (TelegramApiException e) {
             log.error("Ошибка при отправке новости в группу. {}", e.toString());
         } catch (IOException e) {
